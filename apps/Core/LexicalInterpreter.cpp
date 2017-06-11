@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ void LexicalInterpreter::parse(const std::string& op)
 }
 
 
-int LexicalInterpreter::GetOpcode() const
+int LexicalInterpreter::getOpcode() const
 {
     return opcode;
 }
@@ -103,7 +103,6 @@ void LexicalInterpreter::setExtra(uint8_t extra)
 {
     this->extra = extra;
 }
-
 
 const vector<uint8_t> LexicalInterpreter::serialization() const
 {
