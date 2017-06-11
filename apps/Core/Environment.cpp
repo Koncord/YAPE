@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,18 +23,12 @@
 #include "RegisterController.hpp"
 #include "ControlUnit.hpp"
 
-Environment *Environment::sThis = 0;
-
 Environment::Environment() : mReg(0), mMem(0), mCU(0)
 {
-    assert(!sThis);
-    sThis = this;
 }
 
 Environment::~Environment()
 {
-    sThis = 0;
-    
     delete mReg;
     mReg = 0;
     
@@ -46,9 +40,10 @@ Environment::~Environment()
 }
 
 const Environment& Environment::get()
+Environment& Environment::get()
 {
-    assert(sThis);
-    return *sThis;
+    static Environment env;
+    return env;
 }
 
 RegisterController* Environment::GetReg() const

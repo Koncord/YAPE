@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public:
     Environment();
     virtual ~Environment();
     
-    static const Environment& get();
+    static Environment& get();
     
     RegisterController *GetReg() const;
     void SetReg(RegisterController *);
@@ -46,7 +46,6 @@ public:
 private:
     Environment(const Environment&);
     Environment& operator= (const Environment&);
-    static Environment *sThis;
     
     RegisterController *mReg;
     Memory *mMem;
