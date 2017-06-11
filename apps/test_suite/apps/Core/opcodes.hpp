@@ -60,14 +60,14 @@ void ops3(Memory *prog, uint16_t *pos, uint8_t mod1, uint16_t data1, uint8_t mod
 
 void _instr(Memory *prog, uint16_t *pos, uint8_t opcode, Operand *op1 = 0, Operand *op2 = 0, Operand *op3 = 0, uint8_t extra = 0)
 {
-    prog->SetByte(*pos, op);
+    prog->SetByte(*pos, opcode);
     *pos += 1;
     if(op1 != 0)
     {
         if(op2 != 0)
         {
             if(op3 != 0)
-                ops3(prog, pos, op1->mod, op1->data, op2->mod, op2->data, op3->mod, op3->data extra);
+                ops3(prog, pos, op1->mod, op1->data, op2->mod, op2->data, op3->mod, op3->data, extra);
             else
                 ops(prog, pos, op1->mod, op1->data, op2->mod, op2->data, extra);
         }

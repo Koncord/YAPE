@@ -40,10 +40,9 @@ protected:
     }
     virtual void SetUp()
     {
-        environment = new Environment();
-        environment->SetMemory(new Memory);
-        environment->SetReg(new RegisterController);
-        environment->SetCU(new ControlUnit);
+        Environment::get().SetMemory(new Memory);
+        Environment::get().SetReg(new RegisterController);
+        Environment::get().SetCU(new ControlUnit);
 
         machine = Environment::get().GetCU();
         reg = Environment::get().GetReg();
