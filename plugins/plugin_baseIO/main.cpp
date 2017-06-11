@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,84 +18,28 @@
 
 #include <SDL2/SDL.h>
 #include <DeviceAPI.hpp>
-#include "Beeper.hpp"
+#include <components/pluginsystem/PluginInfo.hpp>
 #include "Display.hpp"
-#include <memory>
-#include <thread>
+#include "BeeperControl.hpp"
+#include "DeviceController.hpp"
 
-
-std::unique_ptr<Display> display;
-
-class BeepControl
+DEVICE bool OnLoad() noexcept
 {
-    std::thread thrBeeper;
-    bool run;
-    Beeper beeper;
-    int baseAmp;
-
-    int duration;
-    double freq;
-
-public:
-    BeepControl()
-    {
-        baseAmp = beeper.getAmplitude();
-        run = false;
-    }
-
-    ~BeepControl()
-    {
-        beeper.stop();
-        if(thrBeeper.joinable())
-            thrBeeper.join();
-    }
-
-    void ThreadBeep()
-    {
-        run = true;
-        beeper.beep(freq, duration); // (double freq, int duration)
-        beeper.wait();
-        run = false;
-    }
-
-    void Beep(double fr = 440, int dur = 100)
-    {
-        duration = dur;
-        freq = fr;
-
-        if(run)
-            beeper.stop();
-        thrBeeper = std::move(std::thread(&BeepControl::ThreadBeep, this));
-    }
-
-    void SetAmpScale(int scale)
-    {
-        beeper.setAmplitude(baseAmp * scale);
-    }
-
-    void Stop()
-    {
-        beeper.stop();
-    }
-
-};
-
-BeepControl beeper;
-
-DEVICE bool LoadBIOS() noexcept
-{
-    printf("Hello from plugin!\n");
+    PLUGIN_INFO(1, 0, 0, "BaseIO");
+    //PLUGIN_ADD_DEPENDENCY("");
+    printf("Hello from plugin %s!\n", PluginInfo::get().name().c_str());
     SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
 
-    display = std::make_unique<Display>(GetMemoryPtr());
-
-    display->SetMode(Display::MODE::SuperVideo);
+    auto &deviceControl = DeviceController::get();
+    deviceControl.setDisplay(new Display(GetMemoryPtr()));
+    deviceControl.setBeeperControl(new BeeperControl);
 
     return true;
 }
 
 DEVICE void OnUnload() noexcept
 {
+    printf("Bye-bye!\n");
     SDL_Quit();
 }
 
@@ -111,8 +55,8 @@ DEVICE void OnIRQChanged() noexcept // threads
 
 DEVICE void OnPortActivity(uint16_t port, uint16_t data) noexcept
 {
-
-    if(port == 0x01)
+    const DeviceController &controller = DeviceController::get();
+    if (port == 0x01)
     {
         // SuperVideo mode
         // sequence X,Y, RRGG, 00BB
@@ -121,32 +65,29 @@ DEVICE void OnPortActivity(uint16_t port, uint16_t data) noexcept
         // SuperText mode
         // sequence [command byte] + char
         // size 2 bytes (if control byte 0, this is text, else control sequence)
-        display->Render(data);
+        controller.getDisplay()->Render(data);
     }
-    else if(port == 0x02)
+    else if (port == 0x02)
     {
         static bool magic = false;
-        static uint16_t freq, duration;
-        if(magic)
+        static uint16_t freq;
+        if (magic)
         {
-            duration = data;
-            beeper.Beep(freq, duration);
-            return;
+            controller.getBeeperControl()->Beep(freq, data);
+            magic = false;
         }
-        magic = true;
-        freq = data;
+        else
+        {
+            freq = data;
+            magic = true;
+        }
     }
 }
 
-class Timer
+DEVICE int PipeReciver(uint32_t /*senderID*/, void * /*data*/, uint32_t /*size*/) noexcept
 {
-    uint16_t data;
-    public:
-        void LoadData(uint16_t data);
-        void Step();
-        bool Out();
-};
-Timer t;
+    return 0;
+}
 
 DEVICE void Runner() noexcept // run as while safe thread
 {
@@ -165,10 +106,10 @@ DEVICE void Runner() noexcept // run as while safe thread
      * разряд 7 - сброс клавиатуры и разрешение опроса программно-опрашиваемых переключателей
      * */
 
-     /*
-      * Порты 0x60 - 0x63 используются параллельным контроллером Intel 8255
-      * Порт 0x63 - порт программирования 8255
-      */
+    /*
+     * Порты 0x60 - 0x63 используются параллельным контроллером Intel 8255
+     * Порт 0x63 - порт программирования 8255
+     */
 
     /*if(GetPortData(0x61) & 0x2 == true) // таймер включен
     {
