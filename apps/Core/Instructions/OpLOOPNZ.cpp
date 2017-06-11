@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,11 +28,9 @@ bool OpLOOPNZ::Condition() const
 
     if(_cx == 0 || reg->GetFlag(Flag::Zero))
         return false;
-    else
-    {
-        reg->Set(Register::CX, _cx - 1);
-        return true;
-    }
+
+    reg->Set(Register::CX, _cx - 1);
+    return true;
 }
 
 int OpLOOPNZ::GetOpcode() const
