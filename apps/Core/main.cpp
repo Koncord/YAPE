@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,156 +29,62 @@
 #include "BaseInstructions.hpp"
 #include "pluginsystem/Plugin.hpp"
 
-#ifdef __x86_64__
-#define CPU_ARCH "x64"
-#else
-#define CPU_ARCH "x86"
-#endif
+#include <boost/program_options.hpp>
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#include <vector>
+#include <csignal>
+
+#ifdef __x86_64__
+#define CPU_ARCH "64"
+#else
+#define CPU_ARCH ""
+#endif
 
 using namespace std;
 
 /*
- * 
+ *
  */
-
-void test_ops(Memory *prog, uint16_t *pos, uint8_t mod1, uint16_t data1, uint8_t mod2 = 0, uint16_t data2 = 0, uint8_t extra = 0)
-{
-    prog->SetByte(*pos, (extra << 4) | (mod2 << 2) | mod1);
-    *pos += 1;
-    prog->SetWord(*pos, data1);
-    *pos += 2;
-    if(mod2 != 0)
-    {
-        prog->SetWord(*pos, data2);
-        *pos += 2;
-    }
-}
-
-void test_ops3(Memory *prog, uint16_t *pos, uint8_t mod1, uint16_t data1, uint8_t mod2 = 0, uint16_t data2 = 0, uint8_t mod3 = 0, uint16_t data3 = 0, uint8_t extra = 0)
-{
-    prog->SetByte(*pos, (extra << 6)| (mod2 << 4) | (mod2 << 2) | mod1);
-    *pos += 1;
-    if(mod1 != 0)
-    {
-        prog->SetWord(*pos, data1);
-        *pos += 2;
-    }
-    if(mod2 != 0)
-    {
-        prog->SetWord(*pos, data2);
-        *pos += 2;
-    }
-    if(mod3 != 0)
-    {
-        prog->SetWord(*pos, data3);
-        *pos += 2;
-    }
-}
-
-void test_add(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::ADD);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, Register::AX, Operand::Immediate, value);
-}
-
-void test_mova(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::MOV);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, Register::AX, Operand::Immediate, value);
-}
-
-void test_movb(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::MOV);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, Register::BX, Operand::Immediate, value);
-}
-
-void test_movc(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::MOV);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, Register::CX, Operand::Immediate, value);
-}
-
-void test_sub(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::SUB);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, Register::AX, Operand::Immediate, value);
-}
-
-void test_jnz(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::JNZ);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Immediate, value, 0, 0, Operand::EXTRA::Short);
-}
-
-void test_div(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::DIV);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, value);
-}
-
-void test_idiv(Memory *prog, uint16_t *pos, uint16_t value)
-{
-    prog->SetByte(*pos, Opcode::IDIV);
-    *pos += 1;
-    test_ops(prog, pos, Operand::Register, value);
-}
-
-void test_imul3(Memory *prog, uint16_t *pos)
-{
-    prog->SetByte(*pos, Opcode::IMUL3);
-    *pos += 1;
-    test_ops3(prog, pos, Operand::Register, Register::AX, Operand::Register, Register::BX, Operand::Register, Register::CX);
-}
-
-void test_hlt(Memory *prog, uint16_t *pos)
-{
-    prog->SetByte(*pos, Opcode::HLT);
-    *pos += 1;
-}
-
-inline string Hex(unsigned short t)
-{
-    stringstream sstr;
-    sstr << "0x" << setfill('0') << setw(4) << hex << t << dec;
-    return sstr.str();
-}
-
-inline string Bool(bool b)
-{
-    return b ? "True" : "False";
-}
+static bool debug = false;
 
 void DebugOutput()
 {
-    const RegisterController& reg = *Environment::get().GetReg();
+    const RegisterController &reg = *Environment::get().GetReg();
+
+    const auto RHex = [&reg](unsigned short r)
+    {
+        stringstream sstr;
+        sstr << "0x" << setfill('0') << setw(4) << hex << reg.Get(r) << dec;
+        return sstr.str();
+    };
+    const auto FBool = [&reg](uint16_t f)
+    {
+        return reg.GetFlag(f) ? "True" : "False";
+    };
+
     cout << "---------------- Registers ----------------" << endl;
-    cout << "AX: " << Hex(reg.Get(Register::AX)) << " BX: " << Hex(reg.Get(Register::BX)) << " CX: " << Hex(reg.Get(Register::CX)) << " DX: " << Hex(reg.Get(Register::DX)) << endl;
-    cout << "SI: " << Hex(reg.Get(Register::SI)) << " DI: " << Hex(reg.Get(Register::DI)) << " BP: " << Hex(reg.Get(Register::BP)) << " SP: " << Hex(reg.Get(Register::SP)) << endl;
-    cout << "CS: " << Hex(reg.Get(Register::CS)) << " DS: " << Hex(reg.Get(Register::DS)) << " ES: " << Hex(reg.Get(Register::ES)) << " SS: " << Hex(reg.Get(Register::SS)) << endl;
-    cout << "IP: " << Hex(reg.Get(Register::IP)) << endl;
+    cout << "AX: " << RHex(Register::AX) << " BX: " << RHex(Register::BX) << " CX: " << RHex(Register::CX) << " DX: " << RHex(Register::DX) << endl;
+    cout << "SI: " << RHex(Register::SI) << " DI: " << RHex(Register::DI) << " BP: " << RHex(Register::BP) << " SP: " << RHex(Register::SP) << endl;
+    cout << "CS: " << RHex(Register::CS) << " DS: " << RHex(Register::DS) << " ES: " << RHex(Register::ES) << " SS: " << RHex(Register::SS) << endl;
+    cout << "IP: " << RHex(Register::IP) << endl;
     cout << "------------------ Flags ------------------" << endl;
-    cout << "Carry:\t\t" << Bool(reg.GetFlag(Flag::Carry)) << "\t\t" << "Parity:\t\t" << Bool(reg.GetFlag(Flag::Parity)) << endl;
-    cout << "Auxiliary:\t" << Bool(reg.GetFlag(Flag::Auxiliary)) << "\t\t" << "Zero:\t\t" << Bool(reg.GetFlag(Flag::Zero)) << endl;
-    cout << "Sign:\t\t" << Bool(reg.GetFlag(Flag::Sign)) << "\t\t" << "Trap:\t\t" << Bool(reg.GetFlag(Flag::Trap)) << endl;
-    cout << "Interrupt:\t" << Bool(reg.GetFlag(Flag::Interrupt)) << "\t\t" << "Direction:\t" << Bool(reg.GetFlag(Flag::Direction)) << endl;
-    cout << "Overflow:\t" << Bool(reg.GetFlag(Flag::Overflow)) << endl;
+    cout << "Carry:\t\t"   << FBool(Flag::Carry)     << "\t\t" << "Parity:\t\t"  << FBool(Flag::Parity)    << endl;
+    cout << "Auxiliary:\t" << FBool(Flag::Auxiliary) << "\t\t" << "Zero:\t\t"    << FBool(Flag::Zero)      << endl;
+    cout << "Sign:\t\t"    << FBool(Flag::Sign)      << "\t\t" << "Trap:\t\t"    << FBool(Flag::Trap)      << endl;
+    cout << "Interrupt:\t" << FBool(Flag::Interrupt) << "\t\t" << "Direction:\t" << FBool(Flag::Direction) << endl;
+    cout << "Overflow:\t"  << FBool(Flag::Overflow)  << endl;
 }
+
+bool stop = false;
 
 void TestProgram()
 {
-    auto machine = Environment::get().GetCU();
-    auto reg = Environment::get().GetReg();
-    auto mem = Environment::get().GetMemory();
+    auto &env = Environment::get();
+    auto machine = env.GetCU();
+    auto reg = env.GetReg();
+    auto mem = env.GetMemory();
 
     // default segment initialize
     reg->Set(Register::SS, 0);
@@ -189,78 +95,119 @@ void TestProgram()
     reg->Set(Register::IP, 0); // instruction pointer
     reg->Set(Register::BP, 0); // base pointer
     reg->Set(Register::SP, 0xFFFE); // stack pointer
-
-    {
-        uint16_t pos = (reg->Get(Register::CS) << 4) + reg->Get(Register::IP);
-
-        /*test_add(mem, &pos, 3);
-        const int label = pos;
-        test_sub(mem, &pos, 1);
-        test_jnz(mem, &pos, label);
-        test_hlt(mem, &pos);*/
-
-        /*test_mova(mem, &pos, 5);
-        test_movb(mem, &pos, -2);
-        test_idiv(mem, &pos, Register::BX);
-        test_hlt(mem, &pos);*/
-
-        /*test_movb(mem, &pos, 2);
-        test_movc(mem, &pos, 2);
-        test_imul3(mem, &pos);*/
-        test_mova(mem, &pos, 0x1B8);
-        test_movb(mem, &pos, 0x3E8);
-
-        test_hlt(mem, &pos);
-    }
-    
+    machine->Halt();
     try
     {
-        while (true)
+        while (!stop)
         {
-            const uint32_t pos = (reg->Get(Register::CS) << 4) + reg->Get(Register::IP);
+            if(!machine->isHalted())
+            {
+                const uint32_t cur_pos = machine->GetNextInstructionAddr();
+                const uint16_t cmd_len = LexicalInterpreter::length(mem->GetByte(cur_pos));
 
-            const uint16_t args_len = LexicalInterpreter::ArgLength() * Opcode::Args(mem->GetByte(pos));
-            const uint16_t cmd_len = LexicalInterpreter::CmdLength() + (args_len ? args_len + 1 : 0);
+                if (reg->Get(Register::IP) + cmd_len >= mem->GetSize())
+                    throw runtime_error("IP + cmd_len > memsize");
 
-            if(reg->Get(Register::IP) + cmd_len >= mem->GetSize())
-                break;
+                std::vector<uint8_t> cmd(cmd_len);
+                mem->GetPart(cur_pos, &cmd[0], cur_pos + cmd_len);
 
-            vector<uint8_t> tmp(cmd_len);
-            mem->GetPart(pos, &tmp[0], pos + cmd_len);
-
-            reg->Set(Register::IP, reg->Get(Register::IP) + cmd_len);
-
-            machine->Step(tmp);
-
-            DebugOutput();
+                machine->Step(cmd);
+                if (debug)
+                    DebugOutput();
+            }
             this_thread::sleep_for(chrono::milliseconds(5));
         }
     }
     catch(...)
     {
-        DebugOutput();
+        if(debug)
+            DebugOutput();
         throw;
     }
 }
 
-void LoadPlugins(string plugindir);
+void loadProgram(std::string &file)
+{
+    if(!boost::filesystem::exists(file))
+        throw invalid_argument("file is not exist.");
+
+    ifstream ifs(file, ifstream::binary);
+
+    auto *m = Environment::get().GetMemory();
+
+    char byte;
+
+    for(uint32_t i = 0; ifs.read(reinterpret_cast<char*>(&byte), 1); i++)
+        m->SetByte(i, (uint8_t) byte);
+}
+
+bool options(int argc, char **argv)
+{
+    namespace popt = boost::program_options;
+    popt::options_description desc;
+    std::string input;
+    desc.add_options()
+            ("file,f", popt::value<std::string>(&input), "*.yape file for execution")
+            ("debug,d", "debug output from parser");
+
+
+    popt::variables_map vm;
+    try
+    {
+        popt::parsed_options parsed = popt::command_line_parser(argc, argv).options(desc).allow_unregistered().run();
+        popt::store(parsed, vm);
+        popt::notify(vm);
+        if (!input.empty())
+        {
+            cout << "opening: " << input;
+            if (vm.count("debug"))
+            {
+                cout << " with debug output";
+                debug = true;
+            }
+
+            loadProgram(input);
+            cout << endl;
+        }
+        else
+            std::cout << desc << std::endl;
+    }
+    catch (std::exception &ex)
+    {
+        std::cout << ex.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void onExit()
+{
+    Plugin::UnloadPlugins();
+    stop = true;
+}
 
 int main(int argc, char** argv)
 {
-    (void)(argc); // ignore argc
-    (void)(argv); // ignore argv
+    atexit(onExit);
 
-    unique_ptr<Environment> env(new Environment);
+    auto &env = Environment::get();
 
-    env->SetMemory(new Memory);
-    env->SetReg(new RegisterController);
-    env->SetCU(new ControlUnit);
+    unique_ptr<Memory> mem(new Memory);
 
-    LoadPlugins("plugins");
-    Plugin::Call<Plugin::Hash("LoadBIOS")>();
-    atexit(Plugin::UnloadPlugins);
-    getchar();
-    /*try
+    env.SetMemory(mem.get());
+
+    if(!options(argc, argv))
+        return 0;
+
+    unique_ptr<RegisterController> reg(new RegisterController);
+    unique_ptr<ControlUnit> cu(new ControlUnit);
+    env.SetReg(reg.get());
+    env.SetCU(cu.get());
+
+    Plugin::LoadPlugins("plugins");
+    //atexit(Plugin::UnloadPlugins);
+
+    try
     {
         InstructionSet_base();
 
@@ -269,30 +216,8 @@ int main(int argc, char** argv)
     catch (exception &e)
     {
         cout << e.what() << endl;
-    }*/
+    }
 
     return 0;
 }
 
-void LoadPlugins(string plugindir)
-{
-    namespace fs = boost::filesystem;
-    try
-    {
-        string basepath = fs::current_path()/*.parent_path()*/.string();
-
-        fs::path someDir(basepath + fs::path::preferred_separator + plugindir);
-        fs::directory_iterator end_iter;
-
-        if (fs::exists(someDir) && fs::is_directory(someDir))
-            for (fs::directory_iterator dir_iter(someDir); dir_iter != end_iter; ++dir_iter)
-            {
-                if (dir_iter->path().string().find(".so") != std::string::npos)
-                    Plugin::LoadPlugin(dir_iter->path().string().c_str());
-            }
-    }
-    catch (exception &e)
-    {
-        cout << e.what() << endl;
-    }
-}

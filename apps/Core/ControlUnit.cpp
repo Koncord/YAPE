@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include <components/Memory/Memory.hpp>
+#include <apps/Core/pluginsystem/Plugin.hpp>
 
 #include "BaseInstruction.hpp"
 #include "Environment.hpp"
@@ -33,6 +34,7 @@ unordered_map<int, std::unique_ptr<BaseInstruction>> ControlUnit::sInstructions;
 
 ControlUnit::ControlUnit()
 {
+    halt = false;
 }
 
 ControlUnit::~ControlUnit()
@@ -40,11 +42,30 @@ ControlUnit::~ControlUnit()
 
 }
 
+void ControlUnit::Step()
+{
+    auto mem = Environment::get().GetMemory();
+    const uint32_t cur_pos = GetNextInstructionAddr();
+    const uint16_t cmd_len = LexicalInterpreter::length(mem->GetByte(cur_pos));
+
+    if(Environment::get().GetReg()->Get(Register::IP) + cmd_len >= mem->GetSize())
+        throw runtime_error("IP + cmd_len > memsize");
+
+    std::vector<uint8_t> cmd(cmd_len);
+    mem->GetPart(cur_pos, &cmd[0], cur_pos + cmd_len);
+
+    Step(cmd);
+}
+
 void ControlUnit::Step(const LexicalInterpreter& cmd)
 {
-    auto comm = sInstructions[cmd.GetOpcode()].get();
+    auto reg = Environment::get().GetReg();
+
+    reg->Set(Register::IP, reg->Get(Register::IP) + cmd.length());
+
+    auto comm = sInstructions[cmd.getOpcode()].get();
     if (comm == nullptr)
-        throw runtime_error("Unknown opcode: " + to_string(cmd.GetOpcode()));
+        throw runtime_error("Unknown opcode: " + to_string(cmd.getOpcode()));
     
     if (comm->NumArgs() > 0)
     {
@@ -71,6 +92,7 @@ void ControlUnit::Step(const LexicalInterpreter& cmd)
         }
     }
     comm->Execute();
+    Plugin::Call<Plugin::Hash("OnStep")>();
 }
 
 void ControlUnit::RegisterOp(BaseInstruction *com)
@@ -83,16 +105,15 @@ void ControlUnit::RegisterOp(BaseInstruction *com)
     sInstructions[com->GetOpcode()] = unique_ptr<BaseInstruction>(com);
 }
 
+void ControlUnit::FreeOps()
+{
+    sInstructions.clear();
+}
+
 void ControlUnit::SetOperandData(uint8_t arg, uint16_t data)
 {
     auto reg = Environment::get().GetReg();
-    Operand op;
-    if(arg == 0)
-        op = dest;
-    else if(arg == 1)
-        op = source;
-    else
-        op = source2;
+    Operand op = GetOperand(arg);
 
     if (op.mod == Operand::Immediate)
         throw runtime_error("cannot be pack constant");
@@ -110,13 +131,7 @@ void ControlUnit::SetOperandData(uint8_t arg, uint16_t data)
 uint16_t ControlUnit::GetOperandData(uint8_t arg) const
 {
     const auto& reg = *Environment::get().GetReg();
-    Operand op;
-    if(arg == 0)
-        op = dest;
-    else if(arg == 1)
-        op = source;
-    else
-        op = source2;
+    Operand op = GetOperand(arg);
 
     uint16_t data;
 
@@ -142,7 +157,7 @@ uint8_t ControlUnit::GetExtra() const
 Operand ControlUnit::GetOperand(uint8_t arg) const
 {
     Operand op;
-    if(arg == 0)
+    if(arg == 0) // TODO: may be better stack?
         op = dest;
     else if(arg == 1)
         op = source;
@@ -178,4 +193,25 @@ uint16_t ControlUnit::PopStack()
     const uint16_t data = mem->GetWord((segment << 4) + reg->sp);
     reg->sp += sizeof(data);
     return data;
+}
+
+void ControlUnit::Halt()
+{
+    halt = true;
+}
+
+void ControlUnit::Restart()
+{
+    halt = false;
+}
+
+bool ControlUnit::isHalted() const
+{
+    return halt;
+}
+
+uint32_t ControlUnit::GetNextInstructionAddr() const
+{
+    const auto& reg = *Environment::get().GetReg();
+    return (reg.Get(Register::CS) << 4) + reg.Get(Register::IP);
 }

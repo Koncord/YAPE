@@ -29,14 +29,6 @@ Environment::Environment() : mReg(0), mMem(0), mCU(0)
 
 Environment::~Environment()
 {
-    delete mReg;
-    mReg = 0;
-    
-    delete mMem;
-    mMem = 0;
-    
-    delete mCU;
-    mCU = 0;
 }
 
 Environment& Environment::get()
