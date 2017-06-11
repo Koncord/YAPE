@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ Display::Display(Memory *mem)
 {
     const int scale = 4;
     this->mem = mem;
-    SDL_DisplayMode displayMode;
+    //SDL_DisplayMode displayMode;
     window = SDL_CreateWindow("Display", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 320 * scale, 200 * scale, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
@@ -42,6 +42,8 @@ Display::Display(Memory *mem)
     SDL_RenderClear(renderer);
 
     SDL_RenderPresent(renderer);
+
+    SetMode(Display::MODE::SuperVideo);
 }
 
 Display::~Display()
@@ -67,6 +69,9 @@ void Display::Render(uint16_t data)
     static int magic = 0;
     static short x, y;
     static SDL_Color color;
+
+    if(magic > 2)
+        magic = 0;
     if(mode == SuperVideo)
     {
         switch(magic)
@@ -78,25 +83,23 @@ void Display::Render(uint16_t data)
                 y = data;
                 break;
             case 2:
-                color.r = (data >> 0x8) & 0xFF;
-                color.g = data & 0xFF;
+                color.r = static_cast<uint8_t>((data >> 0x8) & 0xFF);
+                color.g = static_cast<uint8_t>(data & 0xFF);
                 break;
             default:
-                color.b = data & 0xFF;
+                color.b = static_cast<uint8_t>(data & 0xFF);
 
                 SetPixel(x, y, color);
 
                 SDL_RenderPresent(renderer);
-
-                magic = 0;
         }
         magic++;
     }
     else if(mode == SuperText)
     {
-        uint8_t comm = (data >> 0x8) & 0xFF;
-        char c = data & 0xFF;
-        /*if(comm == 0)
+        /*uint8_t comm = static_cast<uint8_t>((data >> 0x8) & 0xFF);
+        char c = static_cast<uint8_t>(data & 0xFF);
+        if(comm == 0)
         {
             printchar(c)
             x += getCharWidth(c);

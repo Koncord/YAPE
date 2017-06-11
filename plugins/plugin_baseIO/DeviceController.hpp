@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,9 +19,25 @@
 #ifndef YAPE_DEVICECONTROLLER_HPP
 #define YAPE_DEVICECONTROLLER_HPP
 
+class Display;
+class BeeperControl;
 
 class DeviceController
 {
+public:
+    static DeviceController& get();
+
+    Display* getDisplay() const;
+    void setDisplay(Display* display);
+    BeeperControl* getBeeperControl() const;
+    void setBeeperControl(BeeperControl* beeperControl);
+
+private:
+    DeviceController();
+    ~DeviceController();
+private:
+    Display *mDisplay;
+    BeeperControl *mBeeperControl;
 
 };
 

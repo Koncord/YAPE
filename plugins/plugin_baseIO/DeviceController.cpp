@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,4 +16,47 @@
  *
  */
 
+#include <cassert>
+#include "BeeperControl.hpp"
+#include "Display.hpp"
 #include "DeviceController.hpp"
+
+DeviceController::DeviceController() : mDisplay(0), mBeeperControl(0)
+{
+}
+
+DeviceController::~DeviceController()
+{
+    if(mBeeperControl)
+        delete mBeeperControl;
+    if(mDisplay)
+        delete mDisplay;
+}
+
+DeviceController &DeviceController::get()
+{
+    static DeviceController dc;
+    return dc;
+}
+
+Display *DeviceController::getDisplay() const
+{
+    assert (mDisplay);
+    return mDisplay;
+}
+
+BeeperControl *DeviceController::getBeeperControl() const
+{
+    assert (mBeeperControl);
+    return mBeeperControl;
+}
+
+void DeviceController::setDisplay(Display *display)
+{
+    mDisplay = display;
+}
+
+void DeviceController::setBeeperControl(BeeperControl *beeperControl)
+{
+    mBeeperControl = beeperControl;
+}
