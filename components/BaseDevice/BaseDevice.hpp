@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ class BaseDevice
 public:
 	BaseDevice();
 	~BaseDevice();
-	uint8_t GetIRQ() const;	// return IRQ number
+	uint8_t GetIRQ() const; // return IRQ number
 	void SetIRQ(uint8_t irq); // set IRQ number
 	virtual bool LoadBIOS() const;
 	// events
-	virtual void OnIRQ();	// if interrupt catched
+	virtual void OnIRQ(); // if interrupt catched
 	virtual void OnIRQChanged();
 	// threads
-	virtual void Runner();		// run as while thread
+	virtual void Runner();	// run as while thread
 private:
 	uint8_t numIRQ;
 };
