@@ -1,6 +1,6 @@
 YAPE
 ====
-YAPE - Yet Another Processor Emulator.  
+YAPE - Yet Another Processor Emulator. Is implementation PC and peripheral devices for learning the basics of how CPU is working.  
 License: [Apache 2.0](LICENSE).  
 ##Requirements
 All projects required CMake >= 2.8
