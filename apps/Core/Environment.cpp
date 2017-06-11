@@ -39,7 +39,6 @@ Environment::~Environment()
     mCU = 0;
 }
 
-const Environment& Environment::get()
 Environment& Environment::get()
 {
     static Environment env;
