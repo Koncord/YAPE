@@ -22,4 +22,9 @@ if (UNIX)
     target_link_libraries(yape dl)
 endif(UNIX)
 
+# Fix for not visible pthreads functions for linker with glibc 2.15
+if (UNIX AND NOT APPLE)
+    target_link_libraries(yape ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
 target_link_libraries(yape ${Boost_LIBRARIES} components)
