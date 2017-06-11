@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ void audio_callback(void *_beeper, uint8_t *_stream, int _length)
 {
 
     int length = _length / 2;
-    Beeper* beeper = (Beeper*) _beeper;
+    Beeper *beeper = (Beeper *) _beeper;
 
-    int16_t *stream = (int16_t*) _stream;
+    int16_t *stream = (int16_t *) _stream;
 
     beeper->generateSamples(stream, length);
 }
@@ -69,29 +69,32 @@ Beeper::~Beeper()
 void Beeper::generateSamples(int16_t *stream, int length)
 {
     int i = 0;
-    while (i < length) {
+    while (i < length)
+    {
 
-        if (beeps.empty()) {
-            while (i < length) {
+        if (beeps.empty())
+        {
+            while (i < length)
+            {
                 stream[i] = 0;
                 i++;
             }
             return;
         }
-        BeepObject& bo = beeps.front();
+        BeepObject &bo = beeps.front();
 
         int samplesToDo = std::min(i + bo.samplesLeft, length);
         bo.samplesLeft -= samplesToDo - i;
 
-        while (i < samplesToDo) {
+        while (i < samplesToDo)
+        {
             stream[i] = amplitude * std::sin(v * 2 * M_PI / FREQUENCY);
             i++;
             v += bo.freq;
         }
 
-        if (bo.samplesLeft == 0) {
+        if (bo.samplesLeft == 0)
             beeps.pop();
-        }
     }
 }
 
@@ -109,7 +112,8 @@ void Beeper::beep(double freq, int duration)
 void Beeper::wait()
 {
     int size;
-    do {
+    do
+    {
         SDL_Delay(5);
         SDL_LockAudio();
         size = beeps.size();
@@ -121,7 +125,7 @@ void Beeper::stop()
 {
     SDL_LockAudio();
     std::queue<BeepObject> empty;
-    std::swap( beeps, empty );
+    std::swap(beeps, empty);
     SDL_UnlockAudio();
 }
 

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,10 +19,30 @@
 #ifndef YAPE_BEEPERCONTROL_HPP
 #define YAPE_BEEPERCONTROL_HPP
 
+#include "Beeper.hpp"
+#include <thread>
 
-class BeeperControl
+class BeeperControl : private Beeper
 {
+    std::thread thrBeeper;
+    bool run;
+    int baseAmp;
 
+    int duration;
+    double freq;
+
+public:
+    BeeperControl();
+
+    ~BeeperControl();
+
+    void ThreadBeep();
+
+    void Beep(double frequency = 440, int duration = 100);
+
+    void SetAmpScale(int scale);
+
+    void Stop();
 };
 
 

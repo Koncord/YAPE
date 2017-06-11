@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ private:
     int amplitude;
 public:
     Beeper();
-    ~Beeper();
+    virtual ~Beeper();
+
     void beep(double freq, int duration);
     void generateSamples(int16_t *stream, int length);
     void wait();
