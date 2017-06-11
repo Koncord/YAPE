@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,6 +53,15 @@ public:
     
     static inline uint8_t ArgLength() { return 2; }
     static inline uint8_t CmdLength() { return 1; }
+    inline uint32_t length() const
+    {
+        return LexicalInterpreter::length(getOpcode());
+    }
+    static inline uint32_t length (uint32_t opcode)
+    {
+        const uint16_t args_len = LexicalInterpreter::ArgLength() * Opcode::Args(opcode);
+        return LexicalInterpreter::CmdLength() + (args_len ? args_len + 1 : 0);
+    }
 };
 
 #endif /* LEXICALINTERPRETER_HPP */
