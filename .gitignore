@@ -117,3 +117,5 @@ install_manifest.txt
 # Debug files
 *.dSYM/
 
+
+cmake-build-debug/

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,12 +28,16 @@ namespace Utils
     template<size_t N>
     constexpr unsigned int hash(const char(&str)[N], size_t I = N)
     {
-        return (I == 1 ? ((2166136261u ^ str[0]) * 16777619u) : ((hash(str, I - 1) ^ str[I - 1]) * 16777619u));
+        const auto magic1 = 2166136261u;
+        const auto magic2 = 16777619u;
+        return (I == 1 ? ((magic1 ^ str[0]) * magic2) : ((hash(str, I - 1) ^ str[I - 1]) * magic2));
     }
 
     inline unsigned int hash(const char* str, std::size_t I)
     {
-        return (I == 1 ? ((2166136261u ^ str[0]) * 16777619u) : ((hash(str, I - 1) ^ str[I - 1]) * 16777619u));
+        const auto magic1 = 2166136261u;
+        const auto magic2 = 16777619u;
+        return (I == 1 ? ((magic1 ^ str[0]) * magic2) : ((hash(str, I - 1) ^ str[I - 1]) * magic2));
     }
 
     template<size_t N>
