@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,4 +16,21 @@
  *
  */
 
-#include "PluginInfo.hpp"
+#ifndef YAPE_INTERNALFUNC_HPP
+#define YAPE_INTERNALFUNC_HPP
+
+int internal_PipeSend(uint32_t id, void *date, uint32_t size) noexcept;
+
+/**
+ * \brief return and increment loaded id and name of plugin.
+ * \param[out] id plugin id.
+ * \param[out] name plugin name.
+ **/
+void internal_GetPluginSearchNext(uint32_t *id, char **name) noexcept;
+
+/**
+ * \brief reset internal counter of plugins.
+ **/
+void internal_GetPluginSearchReset() noexcept;
+
+#endif //YAPE_INTERNALFUNC_HPP

@@ -1,14 +1,18 @@
 project (DeviceAPI)
-cmake_minimum_required(VERSION 2.8)
 
 set (SOURCE_FILES
-        DeviceAPI.cpp
+    private/DeviceAPI.cpp
+    private/PipeAPI.cpp
+    private/PluginInfo.cpp
 )
 
 set (HEADER_FILES
-        Functions.hpp
+    private/InternalFunc.hpp
+    Functions.hpp
 	DeviceAPI.hpp
 	Events.hpp
+    PipeAPI.hpp
+    PluginInfo.hpp
 )
 
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -17,6 +21,6 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 endif ()
 
-add_definitions(-pedantic-errors -pedantic -Wfatal-errors -Wextra -Wall -std=gnu++1y)
+add_definitions(-pedantic-errors -pedantic -Wfatal-errors -Wextra -Wall -std=gnu++14)
 
 add_library(deviceapi STATIC ${SOURCE_FILES} ${HEADER_FILES})

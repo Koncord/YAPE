@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 
 #include <components/Utils/Utils.hpp>
 #include <components/pluginsystem/Functions.hpp>
+#include <components/pluginsystem/private/InternalFunc.hpp>
 
 #include "Helper.hpp"
 
@@ -43,6 +44,8 @@ public:
     virtual ~Plugin();
     static void LoadPlugin(const char* plugin);
     static void UnloadPlugins();
+    static void LoadPlugins(std::string plugindir);
+
 
     template<typename R>
     R GetFunction(const char* name)
@@ -51,24 +54,49 @@ public:
     }
 
     template<typename R>
-    bool SetFunction(const char* name, R value);
+    bool SetFunction(const std::string& name, R value);
 
     static constexpr FunctionData functions[]{
             {"SetRegister", SetRegister},
             {"GetRegister", GetRegister},
 
+            {"GetFlag", GetFlag},
+
             {"SetMemWord", SetMemWord},
             {"GetMemWord", GetMemWord},
 
+            {"Start", Start},
+            {"Quit", Quit},
+            {"Pause", Pause},
+            {"IsPaused", IsPaused},
+            {"Step", Step},
+
             {"GetIRQ", GetIRQ},
             {"SetIRQ", SetIRQ},
+
+            //{"SetPortData", SetPortData},
+            {"GetMemoryPtr", GetMemoryPtr}/*,
+
+            {"internal_PipeSend", internal_PipeSend},
+            {"internal_GetPluginSearchNext", internal_GetPluginSearchNext},
+            {"internal_GetPluginSearchReset", internal_GetPluginSearchReset},*/
+
     };
     static constexpr FunctionCallbackData callbacks[]{
-            {"LoadBIOS", Function<bool>()},
+            {"OnLoad", Function<bool>()},
             {"OnIRQ", Function<void>()},
             {"OnIRQChanged", Function<void>()},
             {"Runner", Function<void>()},
             {"OnUnload", Function<void>()},
+            {"OnStep", Function<void>()},
+
+            {"OnPortActivity", Function<void, uint16_t, uint16_t>()},
+            {"PipeReciver", Function<int, uint32_t, void*, uint32_t>()},
+
+            {"internal_GetPluginVersion", Function<int, int>()},
+            {"internal_GetPluginName", Function<const char*>()},
+            {"internal_GetPluginDependNext", Function<const char*>()},
+            {"internal_GetPluginDependClear", Function<void>()},
     };
 
     const static constexpr FunctionCallbackData &CallbackData(const unsigned int I, const unsigned int N = 0)
@@ -86,7 +114,7 @@ public:
     }
 
     template<unsigned int I, typename... Args>
-    static unsigned int Call(std::stack<CallbackReturn<I>&> result, Args&&... args)
+    static constexpr unsigned int Call(std::stack<CallbackReturn<I>&> result, Args&&... args)
     {
         constexpr FunctionCallbackData const& data = CallbackData(I);
         static_assert(data.callback.matches(TypeString<typename std::remove_reference<Args>::type...>::value), "Wrong number or types of arguments");
@@ -112,7 +140,7 @@ public:
     }
 
     template<unsigned int I, typename... Args>
-    static unsigned int Call(Args&&... args)
+    static constexpr unsigned int Call(Args&&... args)
     {
         constexpr FunctionCallbackData const& data = CallbackData(I);
         static_assert(data.callback.matches(TypeString<typename std::remove_reference<Args>::type...>::value), "Wrong number or types of arguments");

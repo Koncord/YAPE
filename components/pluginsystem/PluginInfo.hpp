@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,11 +19,36 @@
 #ifndef YAPE_PLUGININFO_HPP
 #define YAPE_PLUGININFO_HPP
 
+#include <vector>
+#include <string>
+
+#define PLUGIN_INFO(major, minor, fix, name) {auto &pi = PluginInfo::get(); pi.setName(name); pi.setVersion(major, minor, fix);}
+#define PLUGIN_ADD_DEPENDENCY(dep) {PluginInfo::get().addDependency(dep);}
 
 class PluginInfo
 {
+public:
+    void setName(std::string name);
+    void setVersion(int major, int minor, int fix);
+    void addDependency(std::string dep);
 
+    const std::string& name() const;
+    std::vector<std::string> depends() const;
+    int majorVersion() const;
+    int minorVersion() const;
+    int fixVersion() const;
+
+    static PluginInfo &get();
+
+private:
+    PluginInfo();
+
+protected:
+    int mMajor;
+    int mMinor;
+    int mFix;
+    std::string mName;
+    std::vector<std::string> mDepends;
 };
-
 
 #endif //YAPE_PLUGININFO_HPP

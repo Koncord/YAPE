@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "Plugin.hpp"
 
 #include <components/Memory/Memory.hpp>
+#include <vector>
 #include "../ControlUnit.hpp"
 #include "../RegisterController.hpp"
 #include "../Environment.hpp"
@@ -33,6 +34,11 @@ uint16_t GetRegister(uint16_t regID) noexcept
 {
     auto reg = Environment::get().GetReg();
     return reg->Get(regID);
+}
+
+bool GetFlag(uint16_t flagID) noexcept
+{
+    return Environment::get().GetReg()->GetFlag(flagID);
 }
 
 void SetMemWord(uint32_t addr, uint16_t data) noexcept
@@ -59,4 +65,33 @@ void  SetIRQ(uint8_t irq) noexcept
 Memory *GetMemoryPtr() noexcept
 {
     return Environment::get().GetMemory();
+}
+
+void Start() noexcept
+{
+
+}
+
+void Pause(bool state) noexcept
+{
+    if(state)
+        Environment::get().GetCU()->Halt();
+    else
+        Environment::get().GetCU()->Restart();
+}
+
+bool IsPaused() noexcept
+{
+    return Environment::get().GetCU()->isHalted();
+}
+
+void Step() noexcept
+{
+
+    Environment::get().GetCU()->Step();
+}
+
+void Quit() noexcept
+{
+    exit(0);
 }

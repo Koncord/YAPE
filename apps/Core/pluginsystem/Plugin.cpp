@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
  */
 
 #include "Plugin.hpp"
+
+#include <boost/filesystem.hpp>
+#include <iostream>
 
 Plugin::PluginList Plugin::plugins;
 bool init = false;
@@ -46,18 +49,21 @@ Plugin::Plugin(const char *path)
         lib = handle;
 
         const char* prefix = GetFunction<const char*>("prefix");
+        if(!prefix)
+            printf("Prefix not found. %s\n", path);
         string ppf(prefix);
         for (const auto& func : functions)
-            if (!SetFunction(string(ppf + func.name).c_str(), func.func.addr))
+            if (!SetFunction(string(ppf + func.name), func.func.addr))
                 printf("Script function pointer not found: %s\n", func.name);
     }
-    catch(...)
+    catch(exception &e)
     {
 #ifdef __WIN32__
         FreeLibrary(handle);
 #else
         dlclose(handle);
 #endif
+        printf("Exception: %s\n", e.what());
         throw;
     }
 }
@@ -74,9 +80,9 @@ Plugin::~Plugin()
 
 
 template<typename R>
-bool Plugin::SetFunction(const char* name, R value)
+bool Plugin::SetFunction(const string& name, R value)
 {
-    SystemInterface<R*> result(lib, name);
+    SystemInterface<R*> result(lib, name.c_str());
 
     if (result)
         *result.result = value;
@@ -102,3 +108,28 @@ void Plugin::UnloadPlugins()
     Plugin::Call<Plugin::Hash("OnUnload")>();
     plugins.clear();
 }
+
+void Plugin::LoadPlugins(string plugindir)
+{
+    namespace fs = boost::filesystem;
+    try
+    {
+        string basepath = fs::current_path()/*.parent_path()*/.string();
+
+        fs::path someDir(basepath + static_cast<char>(fs::path::preferred_separator) + plugindir);
+        fs::directory_iterator end_iter;
+
+        if (fs::exists(someDir) && fs::is_directory(someDir))
+            for (fs::directory_iterator dir_iter(someDir); dir_iter != end_iter; ++dir_iter)
+            {
+                if (dir_iter->path().string().find(".so") != std::string::npos)
+                    Plugin::LoadPlugin(dir_iter->path().string().c_str());
+            }
+        Plugin::Call<Plugin::Hash("OnLoad")>();
+    }
+    catch (exception &e)
+    {
+        cout << e.what() << endl;
+    }
+}
+

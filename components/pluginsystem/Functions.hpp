@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ class Memory;
 void SetRegister(uint16_t regID, uint16_t data) noexcept;
 uint16_t GetRegister(uint16_t regID) noexcept;
 
+bool GetFlag(uint16_t flagID) noexcept;
+
 void SetMemWord(uint32_t addr, uint16_t data) noexcept;
 uint16_t GetMemWord(uint32_t addr) noexcept;
 
@@ -35,5 +37,10 @@ void  SetIRQ(uint8_t irq) noexcept;
 Memory *GetMemoryPtr() noexcept;
 void SetPortData(uint16_t port, uint16_t data) noexcept;
 
+void Start() noexcept;
+void Quit() noexcept;
+void Pause(bool state) noexcept;
+bool IsPaused() noexcept;
+void Step() noexcept;
 
 #endif // YAPE_FUNCTIONS_HPP
