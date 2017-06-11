@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ namespace Register
         SS, // points at the segment containing the stack.
 
         // SPECIAL PURPOSE REGISTERS
-        IP, // the instruction pointer.
+        IP,    // the instruction pointer.
         FLAGS, // determines the current state of the processor
     };
 }
@@ -105,8 +105,9 @@ struct Operand
 
 namespace Opcode
 {
-    enum
+    enum Opcode
     {
+/****** 2 args ******/
         ADD = 0x00, // ADD r/m, r/m
         MOV, // MOV r/m, r/m (m to m not allowed)
         SUB,
@@ -124,6 +125,7 @@ namespace Opcode
         SAR,
         IMUL2,
 
+/****** 1 args ******/
         JMP,
         JNZ,
         JNE = JNZ,
@@ -175,6 +177,7 @@ namespace Opcode
         INT,
         DEC,
 
+/****** 0 args ******/
         HLT,
         CLC,
         CLD,
@@ -189,7 +192,8 @@ namespace Opcode
         INT3,
         NOP,
 
-        IMUL3,
+/****** 3 args ******/
+        IMUL3
     };
 
     inline uint8_t Args(int opcode)
