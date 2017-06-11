@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ bool FontModel::setData(const QModelIndex &index, const QVariant &value, int rol
     {
         int row = index.row();
         int col = index.column();
+        QMessageBox::about(0, "", QString::number(row));
 
         BitFontChar sym = symbols.value(row);
         if(col == 0)

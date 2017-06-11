@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,4 +54,15 @@ void Canvas::Resize(int w, int h)
     QPixmap *old = pixmap;
     pixmap = new QPixmap(pixmap->scaled(w, h, Qt::IgnoreAspectRatio, Qt::FastTransformation));
     delete old;
+}
+
+void Canvas::Clear()
+{
+    QPainter p(pixmap);
+    p.fillRect(0,0,8,8, QBrush(Qt::black));
+}
+
+bool Canvas::GetPixel(int x, int y)
+{
+    return pixmap->toImage().pixel(x, y) == QColor(Qt::white).rgb();
 }

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,18 +22,20 @@
 #include <QPoint>
 #include <components/BitFont/BitFont.hpp>
 #include <unordered_map>
+#include "SymbolSelector.hpp"
 
 #include "ui_FontEditor.h"
 
 class MainForm : public QMainWindow,  private Ui::FontEditor
 {
     Q_OBJECT
+    friend class SymbolSelector;
 public:
     explicit MainForm(QWidget *parent = 0);
     MainForm(uint8_t *data, uint8_t size, QWidget *parent);
     virtual ~MainForm();
     static MainForm *get();
-    void SetChar(uint8_t *data, uint16_t size);
+    void SetChar(uint8_t id, uint8_t *data, uint16_t size);
 protected:
     QPoint GetMouseCoord(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -42,9 +44,11 @@ protected:
     void mouseEvent(QMouseEvent *event);
 protected slots:
     void load();
+    virtual void closeEvent(QCloseEvent *event);
 private:
     static MainForm *mThis;
     BitFontHeader fontHeader;
+    SymbolSelector *selector;
 };
 
 #endif	/* _MAINFORM_HPP */

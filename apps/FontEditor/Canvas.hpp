@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,7 +27,9 @@ class Canvas : public QWidget
 public:
     explicit Canvas(QWidget* parent = 0, Qt::WindowFlags f = 0);
     void SetPixel(int x, int y, bool state);
+    bool GetPixel(int x, int y);
     void Resize(int w, int h);
+    void Clear();
 private:
     void paintEvent(QPaintEvent * event);
     QPixmap *pixmap;

@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 #include <QApplication>
 #include "FontEditor.hpp"
-#include "SymbolSelector.hpp"
+
 
 int main(int argc, char *argv[])
 {
@@ -28,8 +28,6 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     MainForm d;
     d.show();
-    SymbolSelector selector;
-    selector.show();
     // create and show your widgets here
     return app.exec();
 }

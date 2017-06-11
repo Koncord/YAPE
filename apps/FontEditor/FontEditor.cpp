@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include <components/Utils/Utils.hpp>
 #include <QFileDialog>
 #include <limits>
+#include <QMessageBox>
 
 MainForm *MainForm::mThis = nullptr;
 MainForm::MainForm(QWidget *parent)
@@ -34,6 +35,12 @@ MainForm::MainForm(QWidget *parent)
     fontHeader.size_height = 8;
     fontHeader.size_width = 8;
     connect(actionLoad, SIGNAL(triggered()), this, SLOT(load()));
+
+    selector = new SymbolSelector(this);
+    selector->show();
+    selector->move(selector->x() - selector->width(), selector->y());
+    this->move(selector->x() + selector->width() + 2, selector->y());
+
 }
 
 MainForm::~MainForm()
@@ -135,10 +142,15 @@ MainForm *MainForm::get()
     return mThis;
 }
 
-void MainForm::SetChar(uint8_t *data, uint16_t size)
+void MainForm::SetChar(uint8_t id, uint8_t *data, uint16_t size)
 {
     uint16_t x = 0;
     uint16_t y = 0;
+
+    setWindowTitle(QString::number(id));
+
+    if(size == 0)
+        canvas->Clear();
     for(uint16_t i = 0; i < size; i++)
     {
         if(y >= fontHeader.size_height)
@@ -151,4 +163,9 @@ void MainForm::SetChar(uint8_t *data, uint16_t size)
             y++;
         }
     }
+}
+
+void MainForm::closeEvent(QCloseEvent *event)
+{
+    selector->close();
 }
