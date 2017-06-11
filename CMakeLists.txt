@@ -1,17 +1,14 @@
 project(YAPE)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 include(Macros)
 
-# Find the Qt librarys
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Core REQUIRED)
-
 # Find the Boost librarys
 set(Boost_USE_STATIC_LIBS        ON)
 set(Boost_USE_MULTITHREADED      ON)
-find_package(Boost 1.50.0 COMPONENTS filesystem system)
+set(Boost_USE_PROGRAM_OPTIONS    ON)
+find_package(Boost 1.50.0 COMPONENTS filesystem system program_options)
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost not found.")
 endif()
@@ -20,7 +17,7 @@ if (UNIX AND NOT APPLE)
     find_package (Threads)
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic --std=c++14")
 
 option(BUILD_PLUGIN_API "Build plugin api library" ON)
 option(BUILD_CORE "Build Core" ON)
@@ -45,6 +42,9 @@ if (BUILD_CORE)
 endif()
 
 if (BUILD_FONTEDITOR)
+    # Find the Qt librarys
+    find_package(Qt5Widgets REQUIRED)
+    find_package(Qt5Core REQUIRED)
     add_subdirectory(apps/FontEditor)
 endif()
 
