@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ void OpIMUL1::Execute()
     auto cu = Environment::get().GetCU();
 
     const uint16_t ddata =reg->Get(Register::AX);
-    const int16_t sdata = cu->GetOperandData(1);
+    const int16_t sdata = cu->GetOperandData(0);
     const uint32_t result = ddata * sdata;
 
     bool flags = false;
