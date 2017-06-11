@@ -1,0 +1,34 @@
+<RCC>
+  <qresource prefix="Icons">
+    <file>icons/Edit_256x256.png</file>
+    <file>icons/Add_256x256.png</file>
+    <file>icons/Cancel_256x256.png</file>
+    <file>icons/Check_256x256.png</file>
+    <file>icons/Copy_256x256.png</file>
+    <file>icons/Delete_256x256.png</file>
+    <file>icons/Help_256x256.png</file>
+    <file>icons/Information_256x256.png</file>
+    <file>icons/Log Out_256x256.png</file>
+    <file>icons/New_256x256.png</file>
+    <file>icons/Next_256x256.png</file>
+    <file>icons/Open_256x256.png</file>
+    <file>icons/Paste_256x256.png</file>
+    <file>icons/Pause_256x256.png</file>
+    <file>icons/Play_256x256.png</file>
+    <file>icons/Preview_256x256.png</file>
+    <file>icons/Previous_256x256.png</file>
+    <file>icons/Redo_256x256.png</file>
+    <file>icons/Refresh_256x256.png</file>
+    <file>icons/Remove_256x256.png</file>
+    <file>icons/Save_256x256.png</file>
+    <file>icons/Search_256x256.png</file>
+    <file>icons/Settings_256x256.png</file>
+    <file>icons/Step_256x256.png</file>
+    <file>icons/Stock Index Down_256x256.png</file>
+    <file>icons/Stock Index Up_256x256.png</file>
+    <file>icons/Stop_256x256.png</file>
+    <file>icons/Synchronize_256x256.png</file>
+    <file>icons/Undo_256x256.png</file>
+    <file>images/mode_Output.png</file>
+  </qresource>
+</RCC>
