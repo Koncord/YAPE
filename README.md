@@ -2,22 +2,22 @@ YAPE
 ====
 YAPE - Yet Another Processor Emulator. Is implementation PC and peripheral devices for learning the basics of how CPU is working.  
 License: [Apache 2.0](LICENSE).  
-##Requirements
+## Requirements
 All projects required CMake >= 2.8
-###Core
+### Core
 * Boost >= 1.50  
 * GCC >= 4.9
 
-###Test Suite
+### Test Suite
 * Boost >= 1.50
 * GCC >= 4.9
 * GTest (Google C++ Testing Framework) >= 1.7
 
-###FontEditor
+### FontEditor
 * QT >= 5.0
 * GCC >= 4.9 or CLang 3.6
 * Boost >= 1.50
 
-###Plugin BaseIO
+### Plugin BaseIO
 * SDL >= 2.0
 * GCC >= 4.9 or CLang 3.6
