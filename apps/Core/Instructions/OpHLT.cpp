@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Stanislav Zhukov (koncord@rwa.su)
+ *  Copyright (c) 2015-2017 Stanislav Zhukov
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,11 +17,16 @@
  */
 
 #include <stdexcept>
+#include <iostream>
+#include <apps/Core/ControlUnit.hpp>
+#include <apps/Core/Environment.hpp>
 #include "OpHLT.hpp"
 
 void OpHLT::Execute()
 {
-    throw std::runtime_error("------------------ Halt! ------------------");
+    //std::cerr << "------------------ Halt! ------------------" << std::endl;
+    Environment::get().GetCU()->Halt();
+    //throw std::runtime_error("------------------ Halt! ------------------");
 }
 
 int OpHLT::GetOpcode() const
